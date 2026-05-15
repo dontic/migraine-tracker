@@ -1,0 +1,201 @@
+name: migraine-tracker
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Edit your configuration here — these values are shared across all services.
+# ──────────────────────────────────────────────────────────────────────────────
+x-config:
+  domain: &domain example.com # ← your domain
+  secret-key: &secret-key change-me-in-production # ← django secret key
+  db-name: &db-name migraine
+  db-user: &db-user migraine
+  db-password: &db-password changeme # ← db password
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Shared Django environment — merged into backend, celery-worker, celery-beat
+x-django-env: &django-env
+  DOMAIN: *domain
+  DJANGO_SECRET_KEY: *secret-key
+  POSTGRES_HOST: postgres
+  POSTGRES_DB_NAME: *db-name
+  POSTGRES_USER: *db-user
+  POSTGRES_PASSWORD: *db-password
+  POSTGRES_PORT: 5432
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_DB: 0
+
+services:
+  # ────────────────────────────────────────────────────────────────────────────
+  # Data layer
+  # ────────────────────────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-bullseye
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: *db-name
+      POSTGRES_USER: *db-user
+      POSTGRES_PASSWORD: *db-password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U migraine -d migraine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Django backend (gunicorn on :8000)
+  # Setting DOMAIN enables production mode:
+  #   • ALLOWED_HOSTS locked to the domain
+  #   • CSRF_TRUSTED_ORIGINS = https://<domain>  (requires HTTPS upstream)
+  #   • FORCE_SCRIPT_NAME = /api
+  # ────────────────────────────────────────────────────────────────────────────
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *django-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/app/backend/media
+      - static:/app/backend/staticfiles
+    networks:
+      - internal
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Celery worker
+  # ────────────────────────────────────────────────────────────────────────────
+
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    entrypoint: ["/app/backend/docker/entrypoint-worker.sh"]
+    environment:
+      <<: *django-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/app/backend/media
+    networks:
+      - internal
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Celery beat scheduler
+  # ────────────────────────────────────────────────────────────────────────────
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    entrypoint: ["/app/backend/docker/entrypoint-beat.sh"]
+    environment:
+      <<: *django-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Frontend builder — runs once, copies dist to shared volume, then exits.
+  # nginx waits for this to complete before starting.
+  # ────────────────────────────────────────────────────────────────────────────
+
+  frontend-builder:
+    build:
+      context: ./frontend
+    user: root
+    entrypoint: ["/bin/sh", "-c", "cp -r /usr/share/nginx/html/. /dist/"]
+    volumes:
+      - frontend-dist:/dist
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Nginx — serves the React SPA at / and reverse-proxies /api/ → backend.
+  # Nginx config is written inline at container start via the entrypoint below;
+  # no separate config file is needed.
+  # ────────────────────────────────────────────────────────────────────────────
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      frontend-builder:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+    volumes:
+      - frontend-dist:/usr/share/nginx/html:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cat > /etc/nginx/conf.d/default.conf << 'NGINXEOF'
+        server {
+            listen 80;
+            server_name _;
+
+            root /usr/share/nginx/html;
+            index index.html;
+
+            # React SPA: fall back to index.html for client-side routing
+            location / {
+                try_files $$uri $$uri/ /index.html;
+            }
+
+            # Django API: strip /api prefix.
+            # Django uses FORCE_SCRIPT_NAME=/api in production so it generates
+            # correct absolute URLs even though it receives requests without /api.
+            location /api/ {
+                proxy_pass         http://backend:8000/;
+                proxy_set_header   Host              $$host;
+                proxy_set_header   X-Real-IP         $$remote_addr;
+                proxy_set_header   X-Forwarded-For   $$proxy_add_x_forwarded_for;
+                proxy_set_header   X-Forwarded-Proto $$scheme;
+                proxy_read_timeout 60s;
+                client_max_body_size 20m;
+            }
+        }
+        NGINXEOF
+        exec nginx -g 'daemon off;'
+    networks:
+      - internal
+
+volumes:
+  postgres-data:
+  media:
+  static:
+  frontend-dist:
+
+networks:
+  internal:
