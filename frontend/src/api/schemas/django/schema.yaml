@@ -101,8 +101,681 @@ paths:
       responses:
         '204':
           description: No response body
+  /migraine/episodes/:
+    get:
+      operationId: migraine_episodes_list
+      parameters:
+      - in: query
+        name: disability_level
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - mild
+            - moderate
+            - none
+            - severe
+        description: |-
+          * `none` - None — normal activity
+          * `mild` - Mild — reduced efficiency
+          * `moderate` - Moderate — significant impairment
+          * `severe` - Severe — bed rest required
+        explode: true
+        style: form
+      - in: query
+        name: has_aura
+        schema:
+          type: boolean
+      - in: query
+        name: migraine_type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - aura_only
+            - aura_with_headache
+            - chronic
+            - cluster
+            - hemiplegic
+            - other
+            - vestibular
+            - without_aura
+        description: |-
+          * `aura_only` - Aura only (without headache)
+          * `aura_with_headache` - Aura with headache
+          * `without_aura` - Migraine without aura
+          * `hemiplegic` - Hemiplegic
+          * `vestibular` - Vestibular
+          * `chronic` - Chronic
+          * `cluster` - Cluster
+          * `other` - Other
+        explode: true
+        style: form
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: pain_level_max
+        schema:
+          type: integer
+      - in: query
+        name: pain_level_min
+        schema:
+          type: integer
+      - in: query
+        name: started_after
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: started_before
+        schema:
+          type: string
+          format: date-time
+      tags:
+      - Migraine - Episodes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MigraineEpisodeList'
+          description: ''
+    post:
+      operationId: migraine_episodes_create
+      tags:
+      - Migraine - Episodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigraineEpisodeWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MigraineEpisodeWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MigraineEpisodeWriteRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigraineEpisodeWrite'
+          description: ''
+  /migraine/episodes/{id}/:
+    get:
+      operationId: migraine_episodes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this migraine episode.
+        required: true
+      tags:
+      - Migraine - Episodes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigraineEpisodeDetail'
+          description: ''
+    put:
+      operationId: migraine_episodes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this migraine episode.
+        required: true
+      tags:
+      - Migraine - Episodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigraineEpisodeWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MigraineEpisodeWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MigraineEpisodeWriteRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigraineEpisodeWrite'
+          description: ''
+    delete:
+      operationId: migraine_episodes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this migraine episode.
+        required: true
+      tags:
+      - Migraine - Episodes
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /migraine/medications/:
+    get:
+      operationId: migraine_medications_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - antiemetic
+          - ergotamine
+          - gepant
+          - otc_analgesic
+          - other
+          - preventive
+          - triptan
+        description: |-
+          * `triptan` - Triptan
+          * `otc_analgesic` - OTC Analgesic
+          * `antiemetic` - Antiemetic
+          * `preventive` - Preventive
+          * `ergotamine` - Ergotamine
+          * `gepant` - Gepant / CGRP Antagonist
+          * `other` - Other
+      tags:
+      - Migraine - Medications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Medication'
+          description: ''
+    post:
+      operationId: migraine_medications_create
+      tags:
+      - Migraine - Medications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MedicationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MedicationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Medication'
+          description: ''
+  /migraine/medications/{id}/:
+    get:
+      operationId: migraine_medications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this medication.
+        required: true
+      tags:
+      - Migraine - Medications
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Medication'
+          description: ''
+    put:
+      operationId: migraine_medications_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this medication.
+        required: true
+      tags:
+      - Migraine - Medications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MedicationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MedicationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Medication'
+          description: ''
+    delete:
+      operationId: migraine_medications_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this medication.
+        required: true
+      tags:
+      - Migraine - Medications
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /migraine/symptoms/:
+    get:
+      operationId: migraine_symptoms_list
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+          enum:
+          - autonomic
+          - gi
+          - neurological
+          - other
+          - psychological
+          - sensory
+        description: |-
+          * `gi` - Gastrointestinal
+          * `sensory` - Sensory
+          * `neurological` - Neurological
+          * `autonomic` - Autonomic
+          * `psychological` - Psychological
+          * `other` - Other
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Migraine - Symptoms
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Symptom'
+          description: ''
+    post:
+      operationId: migraine_symptoms_create
+      tags:
+      - Migraine - Symptoms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SymptomRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SymptomRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SymptomRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Symptom'
+          description: ''
+  /migraine/symptoms/{id}/:
+    get:
+      operationId: migraine_symptoms_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this symptom.
+        required: true
+      tags:
+      - Migraine - Symptoms
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Symptom'
+          description: ''
+    put:
+      operationId: migraine_symptoms_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this symptom.
+        required: true
+      tags:
+      - Migraine - Symptoms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SymptomRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SymptomRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SymptomRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Symptom'
+          description: ''
+    delete:
+      operationId: migraine_symptoms_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this symptom.
+        required: true
+      tags:
+      - Migraine - Symptoms
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /migraine/triggers/:
+    get:
+      operationId: migraine_triggers_list
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+          enum:
+          - environmental
+          - food
+          - hormonal
+          - other
+          - physical
+          - sensory
+          - sleep
+          - stress
+        description: |-
+          * `food` - Food & Drink
+          * `hormonal` - Hormonal
+          * `stress` - Stress
+          * `sleep` - Sleep
+          * `environmental` - Environmental
+          * `physical` - Physical Activity
+          * `sensory` - Sensory
+          * `other` - Other
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Migraine - Triggers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trigger'
+          description: ''
+    post:
+      operationId: migraine_triggers_create
+      tags:
+      - Migraine - Triggers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TriggerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TriggerRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+          description: ''
+  /migraine/triggers/{id}/:
+    get:
+      operationId: migraine_triggers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trigger.
+        required: true
+      tags:
+      - Migraine - Triggers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+          description: ''
+    put:
+      operationId: migraine_triggers_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trigger.
+        required: true
+      tags:
+      - Migraine - Triggers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TriggerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TriggerRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+          description: ''
+    delete:
+      operationId: migraine_triggers_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trigger.
+        required: true
+      tags:
+      - Migraine - Triggers
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
 components:
   schemas:
+    BlankEnum:
+      enum:
+      - ''
+    DisabilityLevelEnum:
+      enum:
+      - none
+      - mild
+      - moderate
+      - severe
+      type: string
+      description: |-
+        * `none` - None — normal activity
+        * `mild` - Mild — reduced efficiency
+        * `moderate` - Moderate — significant impairment
+        * `severe` - Severe — bed rest required
+    HeadacheLocationEnum:
+      enum:
+      - unilateral_left
+      - unilateral_right
+      - bilateral
+      - frontal
+      - temporal
+      - occipital
+      - vertex
+      - retro_orbital
+      type: string
+      description: |-
+        * `unilateral_left` - Unilateral (left)
+        * `unilateral_right` - Unilateral (right)
+        * `bilateral` - Bilateral
+        * `frontal` - Frontal
+        * `temporal` - Temporal
+        * `occipital` - Occipital
+        * `vertex` - Vertex
+        * `retro_orbital` - Retro-orbital
+    HeadacheQualityEnum:
+      enum:
+      - throbbing
+      - pressing
+      - stabbing
+      - burning
+      - dull
+      type: string
+      description: |-
+        * `throbbing` - Throbbing / pulsating
+        * `pressing` - Pressing / tightening
+        * `stabbing` - Stabbing
+        * `burning` - Burning
+        * `dull` - Dull / aching
     LoginRequest:
       type: object
       properties:
@@ -116,6 +789,437 @@ components:
       required:
       - password
       - username
+    Medication:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    MedicationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        is_active:
+          type: boolean
+      required:
+      - name
+    MigraineEpisodeDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        duration_hours:
+          type: number
+          format: double
+          readOnly: true
+        migraine_type:
+          $ref: '#/components/schemas/MigraineTypeEnum'
+        pain_level:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: 0=none, 1=little, 2=discomfort, 3=can't work, 4=debilitating,
+            5=hospital
+        headache_location:
+          oneOf:
+          - $ref: '#/components/schemas/HeadacheLocationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        headache_quality:
+          oneOf:
+          - $ref: '#/components/schemas/HeadacheQualityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        disability_level:
+          oneOf:
+          - $ref: '#/components/schemas/DisabilityLevelEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        has_aura:
+          type: boolean
+        aura_types:
+          type: array
+          items:
+            type: string
+            maxLength: 20
+        visual_aura_locations:
+          type: array
+          items:
+            type: string
+            maxLength: 20
+        aura_duration_minutes:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        sleep_hours_before:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,1})?$
+          nullable: true
+          description: Hours of sleep the night before onset
+        stress_level:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+          description: 0=none … 5=extreme
+        menstrual_related:
+          type: boolean
+          nullable: true
+        notes:
+          type: string
+        triggers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trigger'
+          readOnly: true
+        symptoms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Symptom'
+          readOnly: true
+        episode_medications:
+          type: array
+          items:
+            $ref: '#/components/schemas/MigraineEpisodeMedicationRead'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - duration_hours
+      - episode_medications
+      - id
+      - started_at
+      - symptoms
+      - triggers
+      - updated_at
+    MigraineEpisodeList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        ended_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        duration_hours:
+          type: number
+          format: double
+          readOnly: true
+        migraine_type:
+          allOf:
+          - $ref: '#/components/schemas/MigraineTypeEnum'
+          readOnly: true
+        pain_level:
+          type: integer
+          readOnly: true
+          description: 0=none, 1=little, 2=discomfort, 3=can't work, 4=debilitating,
+            5=hospital
+        disability_level:
+          allOf:
+          - $ref: '#/components/schemas/DisabilityLevelEnum'
+          readOnly: true
+        has_aura:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - disability_level
+      - duration_hours
+      - ended_at
+      - has_aura
+      - id
+      - migraine_type
+      - pain_level
+      - started_at
+      - updated_at
+    MigraineEpisodeMedicationRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        medication:
+          allOf:
+          - $ref: '#/components/schemas/Medication'
+          readOnly: true
+        taken_offset_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Minutes from episode start when taken (negative = taken before
+            onset)
+        dose:
+          type: string
+          maxLength: 50
+        effectiveness:
+          type: boolean
+          nullable: true
+      required:
+      - id
+      - medication
+    MigraineEpisodeMedicationWrite:
+      type: object
+      properties:
+        medication:
+          type: integer
+        taken_offset_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Minutes from episode start when taken (negative = taken before
+            onset)
+        dose:
+          type: string
+          maxLength: 50
+        effectiveness:
+          type: boolean
+          nullable: true
+      required:
+      - medication
+    MigraineEpisodeMedicationWriteRequest:
+      type: object
+      properties:
+        medication:
+          type: integer
+        taken_offset_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Minutes from episode start when taken (negative = taken before
+            onset)
+        dose:
+          type: string
+          maxLength: 50
+        effectiveness:
+          type: boolean
+          nullable: true
+      required:
+      - medication
+    MigraineEpisodeWrite:
+      type: object
+      properties:
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        migraine_type:
+          $ref: '#/components/schemas/MigraineTypeEnum'
+        pain_level:
+          type: integer
+          maximum: 5
+          minimum: 0
+        headache_location:
+          oneOf:
+          - $ref: '#/components/schemas/HeadacheLocationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        headache_quality:
+          oneOf:
+          - $ref: '#/components/schemas/HeadacheQualityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        disability_level:
+          oneOf:
+          - $ref: '#/components/schemas/DisabilityLevelEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        has_aura:
+          type: boolean
+        aura_types:
+          type: array
+          items:
+            type: string
+            maxLength: 20
+        visual_aura_locations:
+          type: array
+          items:
+            type: string
+            maxLength: 20
+        aura_duration_minutes:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        sleep_hours_before:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,1})?$
+          nullable: true
+          description: Hours of sleep the night before onset
+        stress_level:
+          type: integer
+          maximum: 5
+          minimum: 0
+          nullable: true
+        menstrual_related:
+          type: boolean
+          nullable: true
+        notes:
+          type: string
+        triggers:
+          type: array
+          items:
+            type: integer
+        symptoms:
+          type: array
+          items:
+            type: integer
+        episode_medications:
+          type: array
+          items:
+            $ref: '#/components/schemas/MigraineEpisodeMedicationWrite'
+      required:
+      - pain_level
+      - started_at
+    MigraineEpisodeWriteRequest:
+      type: object
+      properties:
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        migraine_type:
+          $ref: '#/components/schemas/MigraineTypeEnum'
+        pain_level:
+          type: integer
+          maximum: 5
+          minimum: 0
+        headache_location:
+          oneOf:
+          - $ref: '#/components/schemas/HeadacheLocationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        headache_quality:
+          oneOf:
+          - $ref: '#/components/schemas/HeadacheQualityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        disability_level:
+          oneOf:
+          - $ref: '#/components/schemas/DisabilityLevelEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        has_aura:
+          type: boolean
+        aura_types:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
+        visual_aura_locations:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
+        aura_duration_minutes:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          nullable: true
+        sleep_hours_before:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,1})?$
+          nullable: true
+          description: Hours of sleep the night before onset
+        stress_level:
+          type: integer
+          maximum: 5
+          minimum: 0
+          nullable: true
+        menstrual_related:
+          type: boolean
+          nullable: true
+        notes:
+          type: string
+        triggers:
+          type: array
+          items:
+            type: integer
+        symptoms:
+          type: array
+          items:
+            type: integer
+        episode_medications:
+          type: array
+          items:
+            $ref: '#/components/schemas/MigraineEpisodeMedicationWriteRequest'
+      required:
+      - pain_level
+      - started_at
+    MigraineTypeEnum:
+      enum:
+      - aura_only
+      - aura_with_headache
+      - without_aura
+      - hemiplegic
+      - vestibular
+      - chronic
+      - cluster
+      - other
+      type: string
+      description: |-
+        * `aura_only` - Aura only (without headache)
+        * `aura_with_headache` - Aura with headache
+        * `without_aura` - Migraine without aura
+        * `hemiplegic` - Hemiplegic
+        * `vestibular` - Vestibular
+        * `chronic` - Chronic
+        * `cluster` - Cluster
+        * `other` - Other
     PasswordChangeRequest:
       type: object
       properties:
@@ -151,6 +1255,128 @@ components:
         last_name:
           type: string
           maxLength: 150
+    Symptom:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/SymptomCategoryEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    SymptomCategoryEnum:
+      enum:
+      - gi
+      - sensory
+      - neurological
+      - autonomic
+      - psychological
+      - other
+      type: string
+      description: |-
+        * `gi` - Gastrointestinal
+        * `sensory` - Sensory
+        * `neurological` - Neurological
+        * `autonomic` - Autonomic
+        * `psychological` - Psychological
+        * `other` - Other
+    SymptomRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/SymptomCategoryEnum'
+        is_active:
+          type: boolean
+      required:
+      - name
+    Trigger:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/TriggerCategoryEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    TriggerCategoryEnum:
+      enum:
+      - food
+      - hormonal
+      - stress
+      - sleep
+      - environmental
+      - physical
+      - sensory
+      - other
+      type: string
+      description: |-
+        * `food` - Food & Drink
+        * `hormonal` - Hormonal
+        * `stress` - Stress
+        * `sleep` - Sleep
+        * `environmental` - Environmental
+        * `physical` - Physical Activity
+        * `sensory` - Sensory
+        * `other` - Other
+    TriggerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/TriggerCategoryEnum'
+        is_active:
+          type: boolean
+      required:
+      - name
+    TypeEnum:
+      enum:
+      - triptan
+      - otc_analgesic
+      - antiemetic
+      - preventive
+      - ergotamine
+      - gepant
+      - other
+      type: string
+      description: |-
+        * `triptan` - Triptan
+        * `otc_analgesic` - OTC Analgesic
+        * `antiemetic` - Antiemetic
+        * `preventive` - Preventive
+        * `ergotamine` - Ergotamine
+        * `gepant` - Gepant / CGRP Antagonist
+        * `other` - Other
     User:
       type: object
       properties:
