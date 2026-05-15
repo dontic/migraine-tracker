@@ -64,6 +64,15 @@ class MigraineEpisodeMedicationWriteSerializer(serializers.ModelSerializer):
 # Episode serializers
 # ---------------------------------------------------------------------------- #
 
+class MigraineEpisodeHeatmapSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(source="started_at", read_only=True)
+
+    class Meta:
+        model = MigraineEpisode
+        fields = ["id", "date", "pain_level"]
+        read_only_fields = fields
+
+
 class MigraineEpisodeListSerializer(serializers.ModelSerializer):
     duration_hours = serializers.FloatField(read_only=True)
 

@@ -1,14 +1,17 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import filters, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .filters import MigraineEpisodeFilter
 from .models import Medication, MigraineEpisode, Symptom, Trigger
 from .serializers import (
     MedicationSerializer,
     MigraineEpisodeDetailSerializer,
+    MigraineEpisodeHeatmapSerializer,
     MigraineEpisodeListSerializer,
     MigraineEpisodeWriteSerializer,
     SymptomSerializer,
@@ -121,3 +124,23 @@ class MigraineEpisodeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @extend_schema(
+        tags=["Migraine - Episodes"],
+        parameters=[
+            OpenApiParameter("date_from", str, description="Start date (YYYY-MM-DD), inclusive"),
+            OpenApiParameter("date_to", str, description="End date (YYYY-MM-DD), inclusive"),
+        ],
+        responses=MigraineEpisodeHeatmapSerializer(many=True),
+    )
+    @action(detail=False, methods=["get"], url_path="heatmap", pagination_class=None)
+    def heatmap(self, request):
+        qs = self.get_queryset().only("id", "started_at", "pain_level")
+        date_from = request.query_params.get("date_from")
+        date_to = request.query_params.get("date_to")
+        if date_from:
+            qs = qs.filter(started_at__date__gte=date_from)
+        if date_to:
+            qs = qs.filter(started_at__date__lte=date_to)
+        serializer = MigraineEpisodeHeatmapSerializer(qs, many=True)
+        return Response(serializer.data)
