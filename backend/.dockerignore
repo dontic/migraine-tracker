@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+
+# Virtual environment
+.venv
+venv
+env
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Test and lint caches
+.pytest_cache
+.coverage
+htmlcov
+.mypy_cache
+.ruff_cache
+
+# Media uploads (mounted as a volume at runtime)
+media
+
+# Logs
+*.log
+logs/
+
+# IDE / OS
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker Compose files (not needed inside the image)
+docker-compose*.yml
