@@ -86,6 +86,12 @@ LOGGING = {
             "handlers": ["console"],
             "propagate": False,
         },
+        # Migraine logger
+        "migraine": {
+            "level": os.getenv("LOGGING_LOG_LEVEL", "INFO"),
+            "handlers": ["console"],
+            "propagate": False,
+        },
     },
 }
 logging.config.dictConfig(LOGGING)
@@ -164,6 +170,8 @@ INSTALLED_APPS = [
     "django_filters",  # Django Filters
     # ------------------------------ AUTHENTICATION ------------------------------ #
     "authentication",  # Custom authentication app
+    # --------------------------------- MIGRAINE --------------------------------- #
+    "migraine",  # Migraine episode tracking
     # ---------------------------------- CELERY ---------------------------------- #
     "django_celery_beat",  # Celery beat
     # -------------------------------- HEALTHCHECK ------------------------------- #
