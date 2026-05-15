@@ -44,4 +44,4 @@ volumes:
 
 networks:
   devnet:
-    name: devnet
+    name: migraine-tracker-devnet
