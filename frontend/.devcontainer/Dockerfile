@@ -1,7 +1,7 @@
 # Dev container Dockerfile
 
-# Get the node 20 alpine image
-FROM node:20-bullseye AS build
+# Get the node 22 alpine image
+FROM node:22-bullseye AS build
 
 # Install git
 RUN apt update && apt install -y git
