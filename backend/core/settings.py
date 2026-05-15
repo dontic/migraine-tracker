@@ -115,9 +115,14 @@ if _prod:
     SESSION_COOKIE_DOMAIN = DOMAIN
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    # Serve the api in the /api path in production
+    # Serve the api in the root path in development
+    FORCE_SCRIPT_NAME = "/api"
 else:
     # Dev: use env vars with localhost defaults
-    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,django").split(",")
+    ALLOWED_HOSTS = os.getenv(
+        "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,django"
+    ).split(",")
     _trusted_origins = os.getenv(
         "DJANGO_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:4321"
     ).split(",")
