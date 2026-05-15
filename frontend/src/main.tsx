@@ -19,6 +19,7 @@ const LoadingFallback = () => (
 // Pages - Lazy loaded for code splitting
 const Home = lazy(() => import("@/pages/Home"));
 const Login = lazy(() => import("@/pages/Login"));
+const MigraineLog = lazy(() => import("@/pages/MigraineLog"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Settings = lazy(() => import("@/pages/Settings"));
 
@@ -32,6 +33,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Home />
+          </Suspense>
+        )
+      },
+      {
+        path: "/migraines",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <MigraineLog />
           </Suspense>
         )
       },
