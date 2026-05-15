@@ -10,113 +10,355 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+import logging.config
+
+# Load environment variables
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# ---------------------------------------------------------------------------- #
+#                               DOMAIN / MODE                                  #
+# ---------------------------------------------------------------------------- #
+# In production set DOMAIN (e.g. "mydomain.com") — all host/CORS/cookie
+# security settings are derived from it automatically.  Without DOMAIN the app
+# runs in dev mode with localhost defaults.
+DOMAIN = os.getenv("DOMAIN")
+_prod = bool(DOMAIN)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4r4bfpm9@5bp4-&jzc1z5v863*jc2ax!)4tq(0+*wfbr&eef-i'
+
+# ---------------------------------------------------------------------------- #
+#                                   DEBUGGING                                  #
+# ---------------------------------------------------------------------------- #
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "False" if _prod else "True") == "True"
 
-ALLOWED_HOSTS = []
+# Logging
+LOGGING_CONFIG: None = None  # Avoid Django logging setup
+LOGGING = {
+    "version": 1,
+    # Set to True to disable Django's logging setup
+    "disable_existing_loggers": True,
+    # Define the formatters
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s - %(levelname)s - %(name)s - %(module)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    # Define the handlers
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",  # Log to console
+            "formatter": "default",  # Use the default formatter
+        }
+    },
+    # Uncomment to log with the root logger
+    # "root": {"level": "WARNING", "handlers": ["console"]},
+    "loggers": {
+        # Django logger
+        "django": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        # Celery logger
+        "celery": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        # Celery beat logger
+        "celery.beat": {
+            "level": "WARNING",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        # Authentication logger
+        "authentication": {
+            "level": os.getenv("LOGGING_LOG_LEVEL", "INFO"),
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+}
+logging.config.dictConfig(LOGGING)
 
 
-# Application definition
+# ---------------------------------------------------------------------------- #
+#                                  CONNECTIONS                                 #
+# ---------------------------------------------------------------------------- #
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-dev-only-key-set-DJANGO_SECRET_KEY-in-production",
+)
+
+if _prod:
+    # Production: everything derives from DOMAIN
+    ALLOWED_HOSTS = [DOMAIN]
+    _trusted_origins = [f"https://{DOMAIN}"]
+    CSRF_COOKIE_DOMAIN = DOMAIN
+    SESSION_COOKIE_DOMAIN = DOMAIN
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+else:
+    # Dev: use env vars with localhost defaults
+    ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,django").split(",")
+    _trusted_origins = os.getenv(
+        "DJANGO_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:4321"
+    ).split(",")
+    CSRF_COOKIE_DOMAIN = os.getenv("DJANGO_CSRF_COOKIE_DOMAIN", "localhost")
+    SESSION_COOKIE_DOMAIN = os.getenv("DJANGO_SESSION_COOKIE_DOMAIN", "localhost")
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+
+# CSRF
+CSRF_TRUSTED_ORIGINS = _trusted_origins
+CSRF_COOKIE_NAME = os.getenv("DJANGO_CSRF_COOKIE_NAME", "csrftoken")
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# CORS settings
+CORS_ORIGIN_WHITELIST = _trusted_origins
+CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CORS_ALLOW_CREDENTIALS = True
+
+# Authentication Sessions
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_HTTPONLY = False
+
+
+# ---------------------------------------------------------------------------- #
+#                                INSTALLED APPS                                #
+# ---------------------------------------------------------------------------- #
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # ----------------------------------- CORS ----------------------------------- #
+    "corsheaders",  # Django CORS Headers
+    # ----------------------------------- REST ----------------------------------- #
+    "rest_framework",  # Django REST Framework
+    "drf_spectacular",  # Django Spectacular
+    "django_filters",  # Django Filters
+    # ------------------------------ AUTHENTICATION ------------------------------ #
+    "authentication",  # Custom authentication app
+    # ---------------------------------- CELERY ---------------------------------- #
+    "django_celery_beat",  # Celery beat
+    # -------------------------------- HEALTHCHECK ------------------------------- #
+    "health_check",  # django-health-check
+    # ------------------------------ DJANGO CLEANUP ------------------------------ #
+    "django_cleanup",  # django-cleanup
 ]
 
+
+# ---------------------------------------------------------------------------- #
+#                                  MIDDLEWARE                                  #
+# ---------------------------------------------------------------------------- #
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Whitenoise
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Django CORS Headers
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'core.urls'
+
+# ---------------------------------------------------------------------------- #
+#                              URLS AND TEMPLATES                              #
+# ---------------------------------------------------------------------------- #
+
+ROOT_URLCONF = "core.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+# ---------------------------------------------------------------------------- #
+#                                     WSGI                                     #
+# ---------------------------------------------------------------------------- #
+WSGI_APPLICATION = "core.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# ---------------------------------------------------------------------------- #
+#                                   DATABASE                                   #
+# ---------------------------------------------------------------------------- #
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+_postgres_host = os.getenv("POSTGRES_HOST")
+if _postgres_host:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB_NAME", "django"),
+            "USER": os.getenv("POSTGRES_USER", "django"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "django"),
+            "HOST": _postgres_host,
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# ----------------------------------- REDIS ---------------------------------- #
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_DB = os.getenv("REDIS_DB", "0")
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# ---------------------------------------------------------------------------- #
+#                             Internationalization                             #
+# ---------------------------------------------------------------------------- #
+# https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
 USE_TZ = True
 
 
+# ---------------------------------------------------------------------------- #
+#                            STATIC AND MEDIA ROUTES                           #
+# ---------------------------------------------------------------------------- #
+
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_URL = "static/"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "media/"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ---------------------------------------------------------------------------- #
+#                                REST FRAMEWORK                                #
+# ---------------------------------------------------------------------------- #
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        # Uncomment the following to enable token authentication (useful for microservices)
+        # "rest_framework.authentication.TokenAuthentication",
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Uncomment the following to enable throttling (rate limiting)
+    # "DEFAULT_THROTTLE_CLASSES": [
+    #     "rest_framework.throttling.AnonRateThrottle",
+    #     "rest_framework.throttling.UserRateThrottle",
+    #     "rest_framework.throttling.ScopedRateThrottle",
+    # ],
+    # "DEFAULT_THROTTLE_RATES": {
+    #     "anon": "10/hour",
+    #     "user": "200/minute",
+    # },
+}
+
+# DRF Spectacular settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Django API",
+    "DESCRIPTION": "API for my project",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/my-project/",
+    "SERVERS": [{"url": "/", "description": "Current server"}],
+}
+
+
+# ---------------------------------------------------------------------------- #
+#                                AUTHENTICATION                                #
+# ---------------------------------------------------------------------------- #
+
+# Set the custom user model in authentication > models.py
+AUTH_USER_MODEL = "authentication.User"
+
+# Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+
+# ---------------------------------------------------------------------------- #
+#                                    CELERY                                    #
+# ---------------------------------------------------------------------------- #
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+
+# Run celery tasks synchronously in DEBUG mode (no separate worker needed)
+CELERY_TASK_ALWAYS_EAGER = DEBUG
+CELERY_TASK_EAGER_PROPAGATES = DEBUG  # Propagate exceptions in eager mode
+
+# Configure Beat Periodic Tasks in the database
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
