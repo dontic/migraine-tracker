@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -60,9 +60,36 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { XIcon } from "lucide-react";
 import { ManagedMultiSelect } from "./ManagedMultiSelect";
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from "@/components/ui/multi-select";
+
+const AURA_TYPE_OPTIONS = [
+  { value: "auditory", label: "Auditory" },
+  { value: "cognitive", label: "Cognitive" },
+  { value: "dizziness", label: "Dizziness" },
+  { value: "motor", label: "Motor" },
+  { value: "sensory", label: "Sensory" },
+  { value: "speech", label: "Speech" },
+  { value: "tingling", label: "Tingling" },
+  { value: "visual", label: "Visual" },
+];
+
+const VISUAL_AURA_LOCATION_OPTIONS = [
+  { value: "bilateral", label: "Bilateral" },
+  { value: "central", label: "Central" },
+  { value: "left_field", label: "Left field" },
+  { value: "lower_field", label: "Lower field" },
+  { value: "peripheral", label: "Peripheral" },
+  { value: "right_field", label: "Right field" },
+  { value: "upper_field", label: "Upper field" },
+];
 
 const episodeSchema = z.object({
   started_at: z.string().min(1, "Start time is required"),
@@ -103,70 +130,6 @@ function toDatetimeLocal(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function TagInput({
-  values,
-  onChange,
-  placeholder,
-}: {
-  values: string[];
-  onChange: (v: string[]) => void;
-  placeholder?: string;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  function addTag(raw: string) {
-    const tag = raw.trim();
-    if (!tag || values.includes(tag)) return;
-    onChange([...values, tag]);
-  }
-
-  function removeTag(tag: string) {
-    onChange(values.filter((v) => v !== tag));
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag(e.currentTarget.value);
-      e.currentTarget.value = "";
-    } else if (e.key === "Backspace" && !e.currentTarget.value && values.length) {
-      onChange(values.slice(0, -1));
-    }
-  }
-
-  return (
-    <div
-      className="flex min-h-9 w-full flex-wrap gap-1.5 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-xs focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 cursor-text"
-      onClick={() => inputRef.current?.focus()}
-    >
-      {values.map((tag) => (
-        <Badge key={tag} variant="outline" className="gap-1 font-normal">
-          {tag}
-          <XIcon
-            className="size-2 cursor-pointer text-muted-foreground hover:text-destructive"
-            onClick={(e) => {
-              e.stopPropagation();
-              removeTag(tag);
-            }}
-          />
-        </Badge>
-      ))}
-      <input
-        ref={inputRef}
-        className="flex-1 min-w-20 bg-transparent outline-none placeholder:text-muted-foreground text-sm"
-        placeholder={values.length === 0 ? placeholder : undefined}
-        onKeyDown={handleKeyDown}
-        onBlur={(e) => {
-          if (e.target.value) {
-            addTag(e.target.value);
-            e.target.value = "";
-          }
-        }}
-      />
-    </div>
-  );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -537,11 +500,23 @@ export function EpisodeFormDialog({
                       <FormItem>
                         <FormLabel>Aura types</FormLabel>
                         <FormControl>
-                          <TagInput
+                          <MultiSelect
                             values={field.value}
-                            onChange={field.onChange}
-                            placeholder="Type and press Enter…"
-                          />
+                            onValuesChange={field.onChange}
+                          >
+                            <MultiSelectTrigger className="w-full">
+                              <MultiSelectValue placeholder="Select aura types…" />
+                            </MultiSelectTrigger>
+                            <MultiSelectContent>
+                              <MultiSelectGroup>
+                                {AURA_TYPE_OPTIONS.map((opt) => (
+                                  <MultiSelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </MultiSelectItem>
+                                ))}
+                              </MultiSelectGroup>
+                            </MultiSelectContent>
+                          </MultiSelect>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -554,11 +529,23 @@ export function EpisodeFormDialog({
                       <FormItem>
                         <FormLabel>Visual aura locations</FormLabel>
                         <FormControl>
-                          <TagInput
+                          <MultiSelect
                             values={field.value}
-                            onChange={field.onChange}
-                            placeholder="Type and press Enter…"
-                          />
+                            onValuesChange={field.onChange}
+                          >
+                            <MultiSelectTrigger className="w-full">
+                              <MultiSelectValue placeholder="Select locations…" />
+                            </MultiSelectTrigger>
+                            <MultiSelectContent>
+                              <MultiSelectGroup>
+                                {VISUAL_AURA_LOCATION_OPTIONS.map((opt) => (
+                                  <MultiSelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </MultiSelectItem>
+                                ))}
+                              </MultiSelectGroup>
+                            </MultiSelectContent>
+                          </MultiSelect>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -595,21 +582,27 @@ export function EpisodeFormDialog({
                   name="stress_level"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Stress level (0–5)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={5}
-                          {...field}
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value === "" ? null : e.target.value
-                            )
-                          }
-                        />
-                      </FormControl>
+                      <FormLabel>Stress level</FormLabel>
+                      <Select
+                        onValueChange={(v) =>
+                          field.onChange(v === "" ? null : Number(v))
+                        }
+                        value={field.value != null ? String(field.value) : ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select…" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0">0 — None</SelectItem>
+                          <SelectItem value="1">1 — Mild</SelectItem>
+                          <SelectItem value="2">2 — Moderate</SelectItem>
+                          <SelectItem value="3">3 — High</SelectItem>
+                          <SelectItem value="4">4 — Very high</SelectItem>
+                          <SelectItem value="5">5 — Extreme</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
