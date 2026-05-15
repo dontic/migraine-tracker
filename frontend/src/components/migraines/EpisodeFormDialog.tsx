@@ -99,9 +99,9 @@ const episodeSchema = z.object({
   headache_location: z.string().optional(),
   headache_quality: z.string().optional(),
   disability_level: z.string().optional(),
-  has_aura: z.boolean().default(false),
-  aura_types: z.array(z.string()).default([]),
-  visual_aura_locations: z.array(z.string()).default([]),
+  has_aura: z.boolean(),
+  aura_types: z.array(z.string()),
+  visual_aura_locations: z.array(z.string()),
   aura_duration_minutes: z.coerce
     .number()
     .int()
@@ -112,9 +112,9 @@ const episodeSchema = z.object({
   stress_level: z.coerce.number().int().min(0).max(5).nullable().optional(),
   menstrual_related: z.boolean().nullable().optional(),
   notes: z.string().optional(),
-  trigger_ids: z.array(z.number()).default([]),
-  symptom_ids: z.array(z.number()).default([]),
-  medication_ids: z.array(z.number()).default([]),
+  trigger_ids: z.array(z.number()),
+  symptom_ids: z.array(z.number()),
+  medication_ids: z.array(z.number()),
 });
 
 type EpisodeFormValues = z.infer<typeof episodeSchema>;
@@ -153,7 +153,10 @@ export function EpisodeFormDialog({
   const [medications, setMedications] = useState<Medication[]>([]);
 
   const form = useForm<EpisodeFormValues>({
-    resolver: zodResolver(episodeSchema),
+    // zodResolver returns Resolver<z4.input<T>> but useForm needs Resolver<z4.output<T>>;
+    // z.coerce fields make input≠output in Zod v4, so we cast to satisfy the compiler.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(episodeSchema) as any,
     defaultValues: {
       started_at: "",
       pain_level: 0,
