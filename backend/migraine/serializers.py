@@ -65,7 +65,10 @@ class MigraineEpisodeMedicationWriteSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------- #
 
 class MigraineEpisodeHeatmapSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(source="started_at", read_only=True)
+    date = serializers.SerializerMethodField()
+
+    def get_date(self, obj):
+        return obj.started_at.date()
 
     class Meta:
         model = MigraineEpisode
