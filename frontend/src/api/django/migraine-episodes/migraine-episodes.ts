@@ -1,10 +1,10 @@
 // @ts-nocheck
 import type {
   MigraineEpisodeDetail,
-  MigraineEpisodeList,
   MigraineEpisodeWrite,
   MigraineEpisodeWriteRequest,
   MigraineEpisodesListParams,
+  PaginatedMigraineEpisodeListList,
 } from "../djangoAPI.schemas";
 
 import { customAxiosInstance } from "../../axios";
@@ -13,9 +13,11 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const migraineEpisodesList = (
   params?: MigraineEpisodesListParams,
-  options?: SecondParameter<typeof customAxiosInstance<MigraineEpisodeList[]>>,
+  options?: SecondParameter<
+    typeof customAxiosInstance<PaginatedMigraineEpisodeListList>
+  >,
 ) => {
-  return customAxiosInstance<MigraineEpisodeList[]>(
+  return customAxiosInstance<PaginatedMigraineEpisodeListList>(
     { url: `/migraine/episodes/`, method: "GET", params },
     options,
   );

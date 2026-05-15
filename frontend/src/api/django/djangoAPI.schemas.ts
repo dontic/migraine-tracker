@@ -356,6 +356,15 @@ export const MigraineTypeEnum = {
   other: "other",
 } as const;
 
+export interface PaginatedMigraineEpisodeListList {
+  count: number;
+  /** @nullable */
+  next?: string | null;
+  /** @nullable */
+  previous?: string | null;
+  results: MigraineEpisodeList[];
+}
+
 export interface PasswordChangeRequest {
   /** @minLength 1 */
   old_password: string;
@@ -522,6 +531,14 @@ export type MigraineEpisodesListParams = {
    * Which field to use when ordering the results.
    */
   ordering?: string;
+  /**
+   * A page number within the paginated result set.
+   */
+  page?: number;
+  /**
+   * Number of results to return per page.
+   */
+  page_size?: number;
   pain_level_max?: number;
   pain_level_min?: number;
   started_after?: string;
