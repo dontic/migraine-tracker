@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import filters, viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from .filters import MigraineEpisodeFilter
@@ -83,9 +84,16 @@ class SymptomViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
+class EpisodePagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
 @extend_schema_view(**_tag("Migraine - Episodes"))
 class MigraineEpisodeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
+    pagination_class = EpisodePagination
     http_method_names = ["get", "post", "put", "delete", "head", "options"]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = MigraineEpisodeFilter
