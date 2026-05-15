@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -12,9 +12,6 @@ COPY orval*.config.ts ./
 COPY src/ ./src/
 COPY public/ ./public/
 COPY index.html ./
-
-ARG VITE_API_BASE_URL=https://api.example.com
-ARG VITE_API_TIMEOUT=30000
 
 RUN npm run build
 
@@ -31,7 +28,6 @@ RUN mkdir -p /var/cache/nginx/client_temp \
     && touch /var/run/nginx.pid \
     && chown nginx:nginx /var/run/nginx.pid
 
-COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 USER nginx
