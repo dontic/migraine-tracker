@@ -294,6 +294,105 @@ paths:
       responses:
         '204':
           description: No response body
+  /migraine/episodes/heatmap/:
+    get:
+      operationId: migraine_episodes_heatmap_list
+      parameters:
+      - in: query
+        name: date_from
+        schema:
+          type: string
+        description: Start date (YYYY-MM-DD), inclusive
+      - in: query
+        name: date_to
+        schema:
+          type: string
+        description: End date (YYYY-MM-DD), inclusive
+      - in: query
+        name: disability_level
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - mild
+            - moderate
+            - none
+            - severe
+        description: |-
+          * `none` - None — normal activity
+          * `mild` - Mild — reduced efficiency
+          * `moderate` - Moderate — significant impairment
+          * `severe` - Severe — bed rest required
+        explode: true
+        style: form
+      - in: query
+        name: has_aura
+        schema:
+          type: boolean
+      - in: query
+        name: migraine_type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - aura_only
+            - aura_with_headache
+            - chronic
+            - cluster
+            - hemiplegic
+            - other
+            - vestibular
+            - without_aura
+        description: |-
+          * `aura_only` - Aura only (without headache)
+          * `aura_with_headache` - Aura with headache
+          * `without_aura` - Migraine without aura
+          * `hemiplegic` - Hemiplegic
+          * `vestibular` - Vestibular
+          * `chronic` - Chronic
+          * `cluster` - Cluster
+          * `other` - Other
+        explode: true
+        style: form
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: pain_level_max
+        schema:
+          type: integer
+      - in: query
+        name: pain_level_min
+        schema:
+          type: integer
+      - in: query
+        name: started_after
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: started_before
+        schema:
+          type: string
+          format: date-time
+      tags:
+      - Migraine - Episodes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MigraineEpisodeHeatmap'
+          description: ''
   /migraine/medications/:
     get:
       operationId: migraine_medications_list
@@ -936,6 +1035,25 @@ components:
       - symptoms
       - triggers
       - updated_at
+    MigraineEpisodeHeatmap:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        date:
+          type: string
+          format: date
+          readOnly: true
+        pain_level:
+          type: integer
+          readOnly: true
+          description: 0=none, 1=little, 2=discomfort, 3=can't work, 4=debilitating,
+            5=hospital
+      required:
+      - date
+      - id
+      - pain_level
     MigraineEpisodeList:
       type: object
       properties:

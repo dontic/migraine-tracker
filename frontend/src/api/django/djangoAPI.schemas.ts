@@ -156,6 +156,13 @@ export interface MigraineEpisodeDetail {
   readonly updated_at: string;
 }
 
+export interface MigraineEpisodeHeatmap {
+  readonly id: number;
+  readonly date: string;
+  /** 0=none, 1=little, 2=discomfort, 3=can't work, 4=debilitating, 5=hospital */
+  readonly pain_level: number;
+}
+
 export interface MigraineEpisodeList {
   readonly id: number;
   readonly started_at: string;
@@ -561,6 +568,70 @@ export type MigraineEpisodesListMigraineTypeItem =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MigraineEpisodesListMigraineTypeItem = {
+  aura_only: "aura_only",
+  aura_with_headache: "aura_with_headache",
+  chronic: "chronic",
+  cluster: "cluster",
+  hemiplegic: "hemiplegic",
+  other: "other",
+  vestibular: "vestibular",
+  without_aura: "without_aura",
+} as const;
+
+export type MigraineEpisodesHeatmapListParams = {
+  /**
+   * Start date (YYYY-MM-DD), inclusive
+   */
+  date_from?: string;
+  /**
+   * End date (YYYY-MM-DD), inclusive
+   */
+  date_to?: string;
+  /**
+   * * `none` - None — normal activity
+   * `mild` - Mild — reduced efficiency
+   * `moderate` - Moderate — significant impairment
+   * `severe` - Severe — bed rest required
+   */
+  disability_level?: MigraineEpisodesHeatmapListDisabilityLevelItem[];
+  has_aura?: boolean;
+  /**
+   * * `aura_only` - Aura only (without headache)
+   * `aura_with_headache` - Aura with headache
+   * `without_aura` - Migraine without aura
+   * `hemiplegic` - Hemiplegic
+   * `vestibular` - Vestibular
+   * `chronic` - Chronic
+   * `cluster` - Cluster
+   * `other` - Other
+   */
+  migraine_type?: MigraineEpisodesHeatmapListMigraineTypeItem[];
+  /**
+   * Which field to use when ordering the results.
+   */
+  ordering?: string;
+  pain_level_max?: number;
+  pain_level_min?: number;
+  started_after?: string;
+  started_before?: string;
+};
+
+export type MigraineEpisodesHeatmapListDisabilityLevelItem =
+  (typeof MigraineEpisodesHeatmapListDisabilityLevelItem)[keyof typeof MigraineEpisodesHeatmapListDisabilityLevelItem];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MigraineEpisodesHeatmapListDisabilityLevelItem = {
+  mild: "mild",
+  moderate: "moderate",
+  none: "none",
+  severe: "severe",
+} as const;
+
+export type MigraineEpisodesHeatmapListMigraineTypeItem =
+  (typeof MigraineEpisodesHeatmapListMigraineTypeItem)[keyof typeof MigraineEpisodesHeatmapListMigraineTypeItem];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MigraineEpisodesHeatmapListMigraineTypeItem = {
   aura_only: "aura_only",
   aura_with_headache: "aura_with_headache",
   chronic: "chronic",

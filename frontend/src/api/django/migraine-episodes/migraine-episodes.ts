@@ -1,8 +1,10 @@
 // @ts-nocheck
 import type {
   MigraineEpisodeDetail,
+  MigraineEpisodeHeatmap,
   MigraineEpisodeWrite,
   MigraineEpisodeWriteRequest,
+  MigraineEpisodesHeatmapListParams,
   MigraineEpisodesListParams,
   PaginatedMigraineEpisodeListList,
 } from "../djangoAPI.schemas";
@@ -69,6 +71,17 @@ export const migraineEpisodesDestroy = (
     options,
   );
 };
+export const migraineEpisodesHeatmapList = (
+  params?: MigraineEpisodesHeatmapListParams,
+  options?: SecondParameter<
+    typeof customAxiosInstance<MigraineEpisodeHeatmap[]>
+  >,
+) => {
+  return customAxiosInstance<MigraineEpisodeHeatmap[]>(
+    { url: `/migraine/episodes/heatmap/`, method: "GET", params },
+    options,
+  );
+};
 export type MigraineEpisodesListResult = NonNullable<
   Awaited<ReturnType<typeof migraineEpisodesList>>
 >;
@@ -83,4 +96,7 @@ export type MigraineEpisodesUpdateResult = NonNullable<
 >;
 export type MigraineEpisodesDestroyResult = NonNullable<
   Awaited<ReturnType<typeof migraineEpisodesDestroy>>
+>;
+export type MigraineEpisodesHeatmapListResult = NonNullable<
+  Awaited<ReturnType<typeof migraineEpisodesHeatmapList>>
 >;
