@@ -851,6 +851,16 @@ components:
         * `mild` - Mild — reduced efficiency
         * `moderate` - Moderate — significant impairment
         * `severe` - Severe — bed rest required
+    EffectivenessEnum:
+      enum:
+      - 0
+      - 1
+      - 2
+      type: integer
+      description: |-
+        * `0` - No relief
+        * `1` - Partial relief
+        * `2` - Full relief
     HeadacheSideEnum:
       enum:
       - left
@@ -1105,9 +1115,17 @@ components:
           type: string
           maxLength: 50
         effectiveness:
-          type: boolean
           nullable: true
+          minimum: -32768
+          maximum: 32767
+          oneOf:
+          - $ref: '#/components/schemas/EffectivenessEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        effectiveness_display:
+          type: string
+          readOnly: true
       required:
+      - effectiveness_display
       - id
       - medication
     MigraineEpisodeMedicationWrite:
@@ -1126,8 +1144,12 @@ components:
           type: string
           maxLength: 50
         effectiveness:
-          type: boolean
           nullable: true
+          minimum: -32768
+          maximum: 32767
+          oneOf:
+          - $ref: '#/components/schemas/EffectivenessEnum'
+          - $ref: '#/components/schemas/NullEnum'
       required:
       - medication
     MigraineEpisodeMedicationWriteRequest:
@@ -1146,8 +1168,12 @@ components:
           type: string
           maxLength: 50
         effectiveness:
-          type: boolean
           nullable: true
+          minimum: -32768
+          maximum: 32767
+          oneOf:
+          - $ref: '#/components/schemas/EffectivenessEnum'
+          - $ref: '#/components/schemas/NullEnum'
       required:
       - medication
     MigraineEpisodeWrite:
@@ -1327,6 +1353,9 @@ components:
         * `chronic` - Chronic
         * `cluster` - Cluster
         * `other` - Other
+    NullEnum:
+      enum:
+      - null
     PaginatedMigraineEpisodeListList:
       type: object
       required:

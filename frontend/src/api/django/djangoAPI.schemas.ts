@@ -24,6 +24,21 @@ export const DisabilityLevelEnum = {
 } as const;
 
 /**
+ * * `0` - No relief
+ * `1` - Partial relief
+ * `2` - Full relief
+ */
+export type EffectivenessEnum =
+  (typeof EffectivenessEnum)[keyof typeof EffectivenessEnum];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const EffectivenessEnum = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+} as const;
+
+/**
  * * `left` - Left
  * `right` - Right
  * `both` - Both
@@ -144,6 +159,20 @@ export interface MigraineEpisodeList {
   readonly updated_at: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MigraineEpisodeMedicationReadEffectiveness = {
+  ...EffectivenessEnum,
+  ...NullEnum,
+} as const;
+/**
+ * @minimum -32768
+ * @maximum 32767
+ * @nullable
+ */
+export type MigraineEpisodeMedicationReadEffectiveness =
+  | (typeof MigraineEpisodeMedicationReadEffectiveness)[keyof typeof MigraineEpisodeMedicationReadEffectiveness]
+  | null;
+
 export interface MigraineEpisodeMedicationRead {
   readonly id: number;
   readonly medication: Medication;
@@ -156,9 +185,28 @@ export interface MigraineEpisodeMedicationRead {
   taken_offset_minutes?: number | null;
   /** @maxLength 50 */
   dose?: string;
-  /** @nullable */
-  effectiveness?: boolean | null;
+  /**
+   * @minimum -32768
+   * @maximum 32767
+   * @nullable
+   */
+  effectiveness?: MigraineEpisodeMedicationReadEffectiveness;
+  readonly effectiveness_display: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MigraineEpisodeMedicationWriteEffectiveness = {
+  ...EffectivenessEnum,
+  ...NullEnum,
+} as const;
+/**
+ * @minimum -32768
+ * @maximum 32767
+ * @nullable
+ */
+export type MigraineEpisodeMedicationWriteEffectiveness =
+  | (typeof MigraineEpisodeMedicationWriteEffectiveness)[keyof typeof MigraineEpisodeMedicationWriteEffectiveness]
+  | null;
 
 export interface MigraineEpisodeMedicationWrite {
   medication: number;
@@ -171,9 +219,27 @@ export interface MigraineEpisodeMedicationWrite {
   taken_offset_minutes?: number | null;
   /** @maxLength 50 */
   dose?: string;
-  /** @nullable */
-  effectiveness?: boolean | null;
+  /**
+   * @minimum -32768
+   * @maximum 32767
+   * @nullable
+   */
+  effectiveness?: MigraineEpisodeMedicationWriteEffectiveness;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const MigraineEpisodeMedicationWriteRequestEffectiveness = {
+  ...EffectivenessEnum,
+  ...NullEnum,
+} as const;
+/**
+ * @minimum -32768
+ * @maximum 32767
+ * @nullable
+ */
+export type MigraineEpisodeMedicationWriteRequestEffectiveness =
+  | (typeof MigraineEpisodeMedicationWriteRequestEffectiveness)[keyof typeof MigraineEpisodeMedicationWriteRequestEffectiveness]
+  | null;
 
 export interface MigraineEpisodeMedicationWriteRequest {
   medication: number;
@@ -186,8 +252,12 @@ export interface MigraineEpisodeMedicationWriteRequest {
   taken_offset_minutes?: number | null;
   /** @maxLength 50 */
   dose?: string;
-  /** @nullable */
-  effectiveness?: boolean | null;
+  /**
+   * @minimum -32768
+   * @maximum 32767
+   * @nullable
+   */
+  effectiveness?: MigraineEpisodeMedicationWriteRequestEffectiveness;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -318,6 +388,11 @@ export const MigraineTypeEnum = {
   cluster: "cluster",
   other: "other",
 } as const;
+
+export type NullEnum = (typeof NullEnum)[keyof typeof NullEnum];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const NullEnum = {} as const;
 
 export interface PaginatedMigraineEpisodeListList {
   count: number;
