@@ -851,40 +851,16 @@ components:
         * `mild` - Mild — reduced efficiency
         * `moderate` - Moderate — significant impairment
         * `severe` - Severe — bed rest required
-    HeadacheLocationEnum:
+    HeadacheSideEnum:
       enum:
-      - unilateral_left
-      - unilateral_right
-      - bilateral
-      - frontal
-      - temporal
-      - occipital
-      - vertex
-      - retro_orbital
+      - left
+      - right
+      - both
       type: string
       description: |-
-        * `unilateral_left` - Unilateral (left)
-        * `unilateral_right` - Unilateral (right)
-        * `bilateral` - Bilateral
-        * `frontal` - Frontal
-        * `temporal` - Temporal
-        * `occipital` - Occipital
-        * `vertex` - Vertex
-        * `retro_orbital` - Retro-orbital
-    HeadacheQualityEnum:
-      enum:
-      - throbbing
-      - pressing
-      - stabbing
-      - burning
-      - dull
-      type: string
-      description: |-
-        * `throbbing` - Throbbing / pulsating
-        * `pressing` - Pressing / tightening
-        * `stabbing` - Stabbing
-        * `burning` - Burning
-        * `dull` - Dull / aching
+        * `left` - Left
+        * `right` - Right
+        * `both` - Both
     LoginRequest:
       type: object
       properties:
@@ -957,14 +933,15 @@ components:
           minimum: 0
           description: 0=none, 1=little, 2=discomfort, 3=can't work, 4=debilitating,
             5=hospital
-        headache_location:
+        headache_side:
           oneOf:
-          - $ref: '#/components/schemas/HeadacheLocationEnum'
+          - $ref: '#/components/schemas/HeadacheSideEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        headache_quality:
-          oneOf:
-          - $ref: '#/components/schemas/HeadacheQualityEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+        headache_regions:
+          type: array
+          items:
+            type: string
+            maxLength: 20
         disability_level:
           oneOf:
           - $ref: '#/components/schemas/DisabilityLevelEnum'
@@ -1043,7 +1020,6 @@ components:
           readOnly: true
         date:
           type: string
-          format: date
           readOnly: true
         pain_level:
           type: integer
@@ -1190,14 +1166,15 @@ components:
           type: integer
           maximum: 5
           minimum: 0
-        headache_location:
+        headache_side:
           oneOf:
-          - $ref: '#/components/schemas/HeadacheLocationEnum'
+          - $ref: '#/components/schemas/HeadacheSideEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        headache_quality:
-          oneOf:
-          - $ref: '#/components/schemas/HeadacheQualityEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+        headache_regions:
+          type: array
+          items:
+            type: string
+            maxLength: 20
         disability_level:
           oneOf:
           - $ref: '#/components/schemas/DisabilityLevelEnum'
@@ -1266,14 +1243,16 @@ components:
           type: integer
           maximum: 5
           minimum: 0
-        headache_location:
+        headache_side:
           oneOf:
-          - $ref: '#/components/schemas/HeadacheLocationEnum'
+          - $ref: '#/components/schemas/HeadacheSideEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        headache_quality:
-          oneOf:
-          - $ref: '#/components/schemas/HeadacheQualityEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+        headache_regions:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
         disability_level:
           oneOf:
           - $ref: '#/components/schemas/DisabilityLevelEnum'

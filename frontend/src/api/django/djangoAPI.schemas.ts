@@ -24,47 +24,18 @@ export const DisabilityLevelEnum = {
 } as const;
 
 /**
- * * `unilateral_left` - Unilateral (left)
- * `unilateral_right` - Unilateral (right)
- * `bilateral` - Bilateral
- * `frontal` - Frontal
- * `temporal` - Temporal
- * `occipital` - Occipital
- * `vertex` - Vertex
- * `retro_orbital` - Retro-orbital
+ * * `left` - Left
+ * `right` - Right
+ * `both` - Both
  */
-export type HeadacheLocationEnum =
-  (typeof HeadacheLocationEnum)[keyof typeof HeadacheLocationEnum];
+export type HeadacheSideEnum =
+  (typeof HeadacheSideEnum)[keyof typeof HeadacheSideEnum];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const HeadacheLocationEnum = {
-  unilateral_left: "unilateral_left",
-  unilateral_right: "unilateral_right",
-  bilateral: "bilateral",
-  frontal: "frontal",
-  temporal: "temporal",
-  occipital: "occipital",
-  vertex: "vertex",
-  retro_orbital: "retro_orbital",
-} as const;
-
-/**
- * * `throbbing` - Throbbing / pulsating
- * `pressing` - Pressing / tightening
- * `stabbing` - Stabbing
- * `burning` - Burning
- * `dull` - Dull / aching
- */
-export type HeadacheQualityEnum =
-  (typeof HeadacheQualityEnum)[keyof typeof HeadacheQualityEnum];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const HeadacheQualityEnum = {
-  throbbing: "throbbing",
-  pressing: "pressing",
-  stabbing: "stabbing",
-  burning: "burning",
-  dull: "dull",
+export const HeadacheSideEnum = {
+  left: "left",
+  right: "right",
+  both: "both",
 } as const;
 
 export interface LoginRequest {
@@ -94,13 +65,8 @@ export interface MedicationRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MigraineEpisodeDetailHeadacheLocation = {
-  ...HeadacheLocationEnum,
-  ...BlankEnum,
-} as const;
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MigraineEpisodeDetailHeadacheQuality = {
-  ...HeadacheQualityEnum,
+export const MigraineEpisodeDetailHeadacheSide = {
+  ...HeadacheSideEnum,
   ...BlankEnum,
 } as const;
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -121,8 +87,8 @@ export interface MigraineEpisodeDetail {
    * @maximum 32767
    */
   pain_level?: number;
-  headache_location?: (typeof MigraineEpisodeDetailHeadacheLocation)[keyof typeof MigraineEpisodeDetailHeadacheLocation];
-  headache_quality?: (typeof MigraineEpisodeDetailHeadacheQuality)[keyof typeof MigraineEpisodeDetailHeadacheQuality];
+  headache_side?: (typeof MigraineEpisodeDetailHeadacheSide)[keyof typeof MigraineEpisodeDetailHeadacheSide];
+  headache_regions?: string[];
   disability_level?: (typeof MigraineEpisodeDetailDisabilityLevel)[keyof typeof MigraineEpisodeDetailDisabilityLevel];
   has_aura?: boolean;
   aura_types?: string[];
@@ -225,13 +191,8 @@ export interface MigraineEpisodeMedicationWriteRequest {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MigraineEpisodeWriteHeadacheLocation = {
-  ...HeadacheLocationEnum,
-  ...BlankEnum,
-} as const;
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MigraineEpisodeWriteHeadacheQuality = {
-  ...HeadacheQualityEnum,
+export const MigraineEpisodeWriteHeadacheSide = {
+  ...HeadacheSideEnum,
   ...BlankEnum,
 } as const;
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -249,8 +210,8 @@ export interface MigraineEpisodeWrite {
    * @maximum 5
    */
   pain_level: number;
-  headache_location?: (typeof MigraineEpisodeWriteHeadacheLocation)[keyof typeof MigraineEpisodeWriteHeadacheLocation];
-  headache_quality?: (typeof MigraineEpisodeWriteHeadacheQuality)[keyof typeof MigraineEpisodeWriteHeadacheQuality];
+  headache_side?: (typeof MigraineEpisodeWriteHeadacheSide)[keyof typeof MigraineEpisodeWriteHeadacheSide];
+  headache_regions?: string[];
   disability_level?: (typeof MigraineEpisodeWriteDisabilityLevel)[keyof typeof MigraineEpisodeWriteDisabilityLevel];
   has_aura?: boolean;
   aura_types?: string[];
@@ -282,13 +243,8 @@ export interface MigraineEpisodeWrite {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MigraineEpisodeWriteRequestHeadacheLocation = {
-  ...HeadacheLocationEnum,
-  ...BlankEnum,
-} as const;
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MigraineEpisodeWriteRequestHeadacheQuality = {
-  ...HeadacheQualityEnum,
+export const MigraineEpisodeWriteRequestHeadacheSide = {
+  ...HeadacheSideEnum,
   ...BlankEnum,
 } as const;
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -306,8 +262,8 @@ export interface MigraineEpisodeWriteRequest {
    * @maximum 5
    */
   pain_level: number;
-  headache_location?: (typeof MigraineEpisodeWriteRequestHeadacheLocation)[keyof typeof MigraineEpisodeWriteRequestHeadacheLocation];
-  headache_quality?: (typeof MigraineEpisodeWriteRequestHeadacheQuality)[keyof typeof MigraineEpisodeWriteRequestHeadacheQuality];
+  headache_side?: (typeof MigraineEpisodeWriteRequestHeadacheSide)[keyof typeof MigraineEpisodeWriteRequestHeadacheSide];
+  headache_regions?: string[];
   disability_level?: (typeof MigraineEpisodeWriteRequestDisabilityLevel)[keyof typeof MigraineEpisodeWriteRequestDisabilityLevel];
   has_aura?: boolean;
   aura_types?: string[];
