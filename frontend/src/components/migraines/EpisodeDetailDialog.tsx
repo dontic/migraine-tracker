@@ -36,23 +36,10 @@ const DISABILITY_LABELS: Record<string, string> = {
   severe: "Severe",
 };
 
-const LOCATION_LABELS: Record<string, string> = {
-  unilateral_left: "Unilateral (left)",
-  unilateral_right: "Unilateral (right)",
-  bilateral: "Bilateral",
-  frontal: "Frontal",
-  temporal: "Temporal",
-  occipital: "Occipital",
-  vertex: "Vertex",
-  retro_orbital: "Retro-orbital",
-};
-
-const QUALITY_LABELS: Record<string, string> = {
-  throbbing: "Throbbing / pulsating",
-  pressing: "Pressing / tightening",
-  stabbing: "Stabbing",
-  burning: "Burning",
-  dull: "Dull / aching",
+const HEADACHE_SIDE_LABELS: Record<string, string> = {
+  left: "Left",
+  right: "Right",
+  both: "Both",
 };
 
 const PAIN_LABELS: Record<number, string> = {
@@ -197,20 +184,11 @@ export function EpisodeDetailDialog({
                   }
                 />
                 <DetailRow
-                  label="Location"
+                  label="Headache side"
                   value={
-                    episode.headache_location
-                      ? LOCATION_LABELS[episode.headache_location] ??
-                        episode.headache_location
-                      : "—"
-                  }
-                />
-                <DetailRow
-                  label="Quality"
-                  value={
-                    episode.headache_quality
-                      ? QUALITY_LABELS[episode.headache_quality] ??
-                        episode.headache_quality
+                    episode.headache_side
+                      ? HEADACHE_SIDE_LABELS[episode.headache_side] ??
+                        episode.headache_side
                       : "—"
                   }
                 />
@@ -364,12 +342,17 @@ export function EpisodeDetailDialog({
                                   : `${em.taken_offset_minutes} min`}
                               </span>
                             )}
-                            {em.effectiveness === true && (
+                            {em.effectiveness === 2 && (
                               <Badge variant="outline" className="text-green-600 border-green-600">
                                 Effective
                               </Badge>
                             )}
-                            {em.effectiveness === false && (
+                            {em.effectiveness === 1 && (
+                              <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                                Partial relief
+                              </Badge>
+                            )}
+                            {em.effectiveness === 0 && (
                               <Badge variant="outline" className="text-red-600 border-red-600">
                                 Not effective
                               </Badge>
