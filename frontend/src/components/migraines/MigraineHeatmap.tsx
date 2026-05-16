@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { migraineEpisodesHeatmapList } from "@/api/django/migraine-episodes/migraine-episodes";
 import type { MigraineEpisodeHeatmap } from "@/api/django/djangoAPI.schemas";
+import { EpisodeDetailDialog } from "@/components/migraines/EpisodeDetailDialog";
 
 const PAIN_COLORS = [
   "bg-emerald-200 dark:bg-emerald-800",
@@ -43,11 +44,11 @@ function dateToISO(date: Date): string {
 function buildGrid(year: number): { weeks: Date[][]; monthPositions: Map<number, string> } {
   const jan1 = new Date(year, 0, 1);
   const gridStart = new Date(jan1);
-  gridStart.setDate(gridStart.getDate() - jan1.getDay()); // rewind to Sunday
+  gridStart.setDate(gridStart.getDate() - ((jan1.getDay() + 6) % 7)); // rewind to Monday
 
   const dec31 = new Date(year, 11, 31);
   const gridEnd = new Date(dec31);
-  gridEnd.setDate(gridEnd.getDate() + (6 - dec31.getDay())); // forward to Saturday
+  gridEnd.setDate(gridEnd.getDate() + ((7 - dec31.getDay()) % 7)); // forward to Sunday
 
   const weeks: Date[][] = [];
   const cur = new Date(gridStart);
@@ -78,6 +79,8 @@ export function MigraineHeatmap() {
   const [year, setYear] = useState(currentYear);
   const [data, setData] = useState<MigraineEpisodeHeatmap[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -94,11 +97,11 @@ export function MigraineHeatmap() {
       .finally(() => setLoading(false));
   }, [year]);
 
-  const painMap = new Map<string, number>();
+  const episodeMap = new Map<string, { id: number; painLevel: number }>();
   for (const ep of data) {
-    const existing = painMap.get(ep.date);
-    if (existing == null || ep.pain_level > existing) {
-      painMap.set(ep.date, ep.pain_level);
+    const existing = episodeMap.get(ep.date);
+    if (existing == null || ep.pain_level > existing.painLevel) {
+      episodeMap.set(ep.date, { id: ep.id, painLevel: ep.pain_level });
     }
   }
 
@@ -150,13 +153,13 @@ export function MigraineHeatmap() {
             <div className="flex gap-[3px]">
               {/* Day labels */}
               <div className="flex flex-col gap-[3px] mr-[2px]">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
                   (label, i) => (
                     <div
                       key={i}
                       className="w-[24px] h-[14px] text-[10px] leading-[14px] text-muted-foreground text-right pr-[3px] select-none"
                     >
-                      {i % 2 === 1 ? label.slice(0, 3) : ""}
+                      {i % 2 === 0 ? label.slice(0, 3) : ""}
                     </div>
                   ),
                 )}
@@ -169,8 +172,9 @@ export function MigraineHeatmap() {
                     const iso = dateToISO(date);
                     const inYear = date.getFullYear() === year;
                     const isFuture = date > today;
-                    const painLevel =
-                      inYear && !isFuture ? painMap.get(iso) : undefined;
+                    const episode =
+                      inYear && !isFuture ? episodeMap.get(iso) : undefined;
+                    const painLevel = episode?.painLevel;
 
                     if (!inYear) {
                       return (
@@ -186,7 +190,7 @@ export function MigraineHeatmap() {
                       cellClass =
                         "w-[14px] h-[14px] rounded-[2px] bg-muted/40 opacity-50";
                     } else if (painLevel != null) {
-                      cellClass = `w-[14px] h-[14px] rounded-[2px] ${PAIN_COLORS[painLevel]}`;
+                      cellClass = `w-[14px] h-[14px] rounded-[2px] cursor-pointer ${PAIN_COLORS[painLevel]}`;
                     } else {
                       cellClass = loading
                         ? "w-[14px] h-[14px] rounded-[2px] bg-muted/50 animate-pulse"
@@ -213,7 +217,17 @@ export function MigraineHeatmap() {
                     return (
                       <Tooltip key={dayIndex}>
                         <TooltipTrigger asChild>
-                          <div className={cellClass} />
+                          <div
+                            className={cellClass}
+                            onClick={
+                              episode
+                                ? () => {
+                                    setSelectedEpisodeId(episode.id);
+                                    setDetailOpen(true);
+                                  }
+                                : undefined
+                            }
+                          />
                         </TooltipTrigger>
                         <TooltipContent side="top">
                           {tooltipText}
@@ -246,6 +260,12 @@ export function MigraineHeatmap() {
           <span>Pain 5/5</span>
         </div>
       </div>
+
+      <EpisodeDetailDialog
+        episodeId={selectedEpisodeId}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </TooltipProvider>
   );
 }
