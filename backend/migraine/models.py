@@ -114,13 +114,6 @@ class MigraineEpisode(models.Model):
         "retro_orbital", "orbital", "parietal",
     ]
 
-    class HeadacheQuality(models.TextChoices):
-        THROBBING = "throbbing", "Throbbing / pulsating"
-        PRESSING = "pressing", "Pressing / tightening"
-        STABBING = "stabbing", "Stabbing"
-        BURNING = "burning", "Burning"
-        DULL = "dull", "Dull / aching"
-
     class DisabilityLevel(models.TextChoices):
         NONE = "none", "None — normal activity"
         MILD = "mild", "Mild — reduced efficiency"
@@ -171,12 +164,6 @@ class MigraineEpisode(models.Model):
         models.CharField(max_length=20),
         blank=True,
         default=list,
-    )
-    headache_quality = models.CharField(
-        max_length=10,
-        choices=HeadacheQuality.choices,
-        blank=True,
-        default="",
     )
 
     # Disability

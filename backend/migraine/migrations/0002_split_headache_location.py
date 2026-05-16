@@ -56,4 +56,8 @@ class Migration(migrations.Migration):
             model_name="migraineepisode",
             name="headache_location",
         ),
+        migrations.RemoveField(
+            model_name="migraineepisode",
+            name="headache_quality",
+        ),
     ]

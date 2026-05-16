@@ -100,7 +100,7 @@ class MigraineEpisodeDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id", "started_at", "ended_at", "duration_hours",
             "migraine_type",
-            "pain_level", "headache_side", "headache_regions", "headache_quality",
+            "pain_level", "headache_side", "headache_regions",
             "disability_level",
             "has_aura", "aura_types", "visual_aura_locations", "aura_duration_minutes",
             "sleep_hours_before", "stress_level", "menstrual_related",
@@ -128,7 +128,7 @@ class MigraineEpisodeWriteSerializer(serializers.ModelSerializer):
         fields = [
             "started_at", "ended_at",
             "migraine_type",
-            "pain_level", "headache_side", "headache_regions", "headache_quality",
+            "pain_level", "headache_side", "headache_regions",
             "disability_level",
             "has_aura", "aura_types", "visual_aura_locations", "aura_duration_minutes",
             "sleep_hours_before", "stress_level", "menstrual_related",
