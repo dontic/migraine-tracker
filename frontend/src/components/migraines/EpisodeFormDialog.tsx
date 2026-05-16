@@ -274,8 +274,8 @@ export function EpisodeFormDialog({
   async function onSubmit(values: EpisodeFormValues) {
     setIsSubmitting(true);
     const payload = {
-      started_at: values.started_at,
-      ended_at: values.ended_at || null,
+      started_at: new Date(values.started_at).toISOString(),
+      ended_at: values.ended_at ? new Date(values.ended_at).toISOString() : null,
       migraine_type: values.migraine_type as never || undefined,
       pain_level: values.pain_level,
       headache_side: values.headache_side as never || undefined,
