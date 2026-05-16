@@ -100,7 +100,7 @@ class MigraineEpisodeDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id", "started_at", "ended_at", "duration_hours",
             "migraine_type",
-            "pain_level", "headache_location", "headache_quality",
+            "pain_level", "headache_side", "headache_regions", "headache_quality",
             "disability_level",
             "has_aura", "aura_types", "visual_aura_locations", "aura_duration_minutes",
             "sleep_hours_before", "stress_level", "menstrual_related",
@@ -128,7 +128,7 @@ class MigraineEpisodeWriteSerializer(serializers.ModelSerializer):
         fields = [
             "started_at", "ended_at",
             "migraine_type",
-            "pain_level", "headache_location", "headache_quality",
+            "pain_level", "headache_side", "headache_regions", "headache_quality",
             "disability_level",
             "has_aura", "aura_types", "visual_aura_locations", "aura_duration_minutes",
             "sleep_hours_before", "stress_level", "menstrual_related",
@@ -146,6 +146,10 @@ class MigraineEpisodeWriteSerializer(serializers.ModelSerializer):
             self.fields["symptoms"].child_relation.queryset = Symptom.objects.filter(
                 user=request.user
             )
+
+    def validate_headache_regions(self, value):
+        _make_array_choices_validator(MigraineEpisode.HEADACHE_REGION_CHOICES)(value)
+        return value
 
     def validate_aura_types(self, value):
         _make_array_choices_validator(MigraineEpisode.AURA_TYPE_CHOICES)(value)

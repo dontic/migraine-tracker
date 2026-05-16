@@ -104,15 +104,15 @@ class MigraineEpisode(models.Model):
         CLUSTER = "cluster", "Cluster"
         OTHER = "other", "Other"
 
-    class HeadacheLocation(models.TextChoices):
-        UNILATERAL_LEFT = "unilateral_left", "Unilateral (left)"
-        UNILATERAL_RIGHT = "unilateral_right", "Unilateral (right)"
-        BILATERAL = "bilateral", "Bilateral"
-        FRONTAL = "frontal", "Frontal"
-        TEMPORAL = "temporal", "Temporal"
-        OCCIPITAL = "occipital", "Occipital"
-        VERTEX = "vertex", "Vertex"
-        RETRO_ORBITAL = "retro_orbital", "Retro-orbital"
+    class HeadacheSide(models.TextChoices):
+        LEFT = "left", "Left"
+        RIGHT = "right", "Right"
+        BOTH = "both", "Both"
+
+    HEADACHE_REGION_CHOICES = [
+        "temporal", "frontal", "occipital", "vertex",
+        "retro_orbital", "orbital", "parietal",
+    ]
 
     class HeadacheQuality(models.TextChoices):
         THROBBING = "throbbing", "Throbbing / pulsating"
@@ -161,11 +161,16 @@ class MigraineEpisode(models.Model):
     )
 
     # Headache character
-    headache_location = models.CharField(
-        max_length=20,
-        choices=HeadacheLocation.choices,
+    headache_side = models.CharField(
+        max_length=10,
+        choices=HeadacheSide.choices,
         blank=True,
         default="",
+    )
+    headache_regions = ArrayField(
+        models.CharField(max_length=20),
+        blank=True,
+        default=list,
     )
     headache_quality = models.CharField(
         max_length=10,
