@@ -70,6 +70,22 @@ import {
   MultiSelectValue,
 } from "@/components/ui/multi-select";
 
+const HEADACHE_SIDE_OPTIONS = [
+  { value: "left", label: "Left" },
+  { value: "right", label: "Right" },
+  { value: "both", label: "Both" },
+];
+
+const HEADACHE_REGION_OPTIONS = [
+  { value: "temporal", label: "Temporal" },
+  { value: "frontal", label: "Frontal" },
+  { value: "occipital", label: "Occipital" },
+  { value: "vertex", label: "Vertex" },
+  { value: "retro_orbital", label: "Retro-orbital" },
+  { value: "orbital", label: "Orbital" },
+  { value: "parietal", label: "Parietal" },
+];
+
 const AURA_TYPE_OPTIONS = [
   { value: "auditory", label: "Auditory" },
   { value: "cognitive", label: "Cognitive" },
@@ -98,8 +114,8 @@ const episodeSchema = z
   ended_at: z.string().optional(),
   migraine_type: z.string().optional(),
   pain_level: z.number().int().min(0).max(5),
-  headache_location: z.string().optional(),
-  headache_quality: z.string().optional(),
+  headache_side: z.string().optional(),
+  headache_regions: z.array(z.string()),
   disability_level: z.string().optional(),
   has_aura: z.boolean(),
   aura_types: z.array(z.string()),
@@ -172,6 +188,7 @@ export function EpisodeFormDialog({
       started_at: "",
       still_ongoing: false,
       pain_level: 0,
+      headache_regions: [],
       has_aura: false,
       aura_types: [],
       visual_aura_locations: [],
@@ -201,8 +218,8 @@ export function EpisodeFormDialog({
           ended_at: ep.ended_at ? toDatetimeLocal(ep.ended_at) : "",
           migraine_type: ep.migraine_type ?? "",
           pain_level: ep.pain_level ?? 0,
-          headache_location: ep.headache_location ?? "",
-          headache_quality: ep.headache_quality ?? "",
+          headache_side: ep.headache_side ?? "",
+          headache_regions: ep.headache_regions ?? [],
           disability_level: ep.disability_level ?? "",
           has_aura: ep.has_aura ?? false,
           aura_types: ep.aura_types ?? [],
@@ -240,8 +257,8 @@ export function EpisodeFormDialog({
       ended_at: values.ended_at || null,
       migraine_type: values.migraine_type as never || undefined,
       pain_level: values.pain_level,
-      headache_location: values.headache_location as never || undefined,
-      headache_quality: values.headache_quality as never || undefined,
+      headache_side: values.headache_side as never || undefined,
+      headache_regions: values.headache_regions,
       disability_level: values.disability_level as never || undefined,
       has_aura: values.has_aura,
       aura_types: values.aura_types,
@@ -429,10 +446,10 @@ export function EpisodeFormDialog({
                 />
                 <FormField
                   control={form.control}
-                  name="headache_location"
+                  name="headache_side"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Location</FormLabel>
+                      <FormLabel>Side</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value ?? ""}
@@ -443,41 +460,11 @@ export function EpisodeFormDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="unilateral_left">Unilateral (left)</SelectItem>
-                          <SelectItem value="unilateral_right">Unilateral (right)</SelectItem>
-                          <SelectItem value="bilateral">Bilateral</SelectItem>
-                          <SelectItem value="frontal">Frontal</SelectItem>
-                          <SelectItem value="temporal">Temporal</SelectItem>
-                          <SelectItem value="occipital">Occipital</SelectItem>
-                          <SelectItem value="vertex">Vertex</SelectItem>
-                          <SelectItem value="retro_orbital">Retro-orbital</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="headache_quality"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quality</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value ?? ""}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select…" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="throbbing">Throbbing / pulsating</SelectItem>
-                          <SelectItem value="pressing">Pressing / tightening</SelectItem>
-                          <SelectItem value="stabbing">Stabbing</SelectItem>
-                          <SelectItem value="burning">Burning</SelectItem>
-                          <SelectItem value="dull">Dull / aching</SelectItem>
+                          {HEADACHE_SIDE_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -485,6 +472,35 @@ export function EpisodeFormDialog({
                   )}
                 />
               </div>
+              <FormField
+                control={form.control}
+                name="headache_regions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Regions</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        values={field.value}
+                        onValuesChange={field.onChange}
+                      >
+                        <MultiSelectTrigger className="w-full">
+                          <MultiSelectValue placeholder="Select regions…" />
+                        </MultiSelectTrigger>
+                        <MultiSelectContent>
+                          <MultiSelectGroup>
+                            {HEADACHE_REGION_OPTIONS.map((opt) => (
+                              <MultiSelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </MultiSelectItem>
+                            ))}
+                          </MultiSelectGroup>
+                        </MultiSelectContent>
+                      </MultiSelect>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Separator />
               <SectionTitle>Aura</SectionTitle>
