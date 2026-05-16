@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { migraineEpisodesRetrieve } from "@/api/django/migraine-episodes/migraine-episodes";
+import { PencilIcon, Trash2Icon } from "lucide-react";
+import {
+  migraineEpisodesRetrieve,
+  migraineEpisodesDestroy,
+} from "@/api/django/migraine-episodes/migraine-episodes";
 import type { MigraineEpisodeDetail } from "@/api/django/djangoAPI.schemas";
 import {
   Dialog,
@@ -8,7 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -16,6 +31,8 @@ interface EpisodeDetailDialogProps {
   episodeId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEdit?: () => void;
+  onDeleted?: () => void;
 }
 
 const MIGRAINE_TYPE_LABELS: Record<string, string> = {
@@ -98,9 +115,13 @@ export function EpisodeDetailDialog({
   episodeId,
   open,
   onOpenChange,
+  onEdit,
+  onDeleted,
 }: EpisodeDetailDialogProps) {
   const [episode, setEpisode] = useState<MigraineEpisodeDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!open || !episodeId) return;
@@ -116,7 +137,29 @@ export function EpisodeDetailDialog({
     onOpenChange(v);
   }
 
+  function handleEdit() {
+    handleOpenChange(false);
+    onEdit?.();
+  }
+
+  async function confirmDelete() {
+    if (!episode) return;
+    setIsDeleting(true);
+    try {
+      await migraineEpisodesDestroy(episode.id);
+      toast.success("Episode deleted.");
+      setDeleteOpen(false);
+      handleOpenChange(false);
+      onDeleted?.();
+    } catch {
+      toast.error("Failed to delete episode.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col gap-0 p-0">
         <DialogHeader className="px-6 pt-6 pb-4">
@@ -379,7 +422,46 @@ export function EpisodeDetailDialog({
             </>
           )}
         </div>
+
+        {!loading && episode && (
+          <div className="flex items-center justify-between px-6 py-4 border-t shrink-0">
+            <Button
+              variant="outline"
+              className="text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2Icon className="size-4" />
+              Delete
+            </Button>
+            <Button onClick={handleEdit}>
+              <PencilIcon className="size-4" />
+              Edit
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete episode?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete this migraine episode. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isDeleting ? "Deleting…" : "Delete"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

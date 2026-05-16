@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ChevronLeftIcon, ChevronRightIcon, MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
-import {
-  migraineEpisodesList,
-  migraineEpisodesDestroy,
-} from "@/api/django/migraine-episodes/migraine-episodes";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { migraineEpisodesList } from "@/api/django/migraine-episodes/migraine-episodes";
 import type {
   MigraineEpisodeList,
   PaginatedMigraineEpisodeListList,
@@ -12,22 +9,6 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { EpisodeDetailDialog } from "./EpisodeDetailDialog";
 
 const PAGE_SIZE = 20;
@@ -90,8 +71,6 @@ export function EpisodeTable({ refreshKey = 0, onEdit, onDeleted }: EpisodeTable
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -104,21 +83,6 @@ export function EpisodeTable({ refreshKey = 0, onEdit, onDeleted }: EpisodeTable
   function openDetail(episode: MigraineEpisodeList) {
     setSelectedId(episode.id);
     setDetailOpen(true);
-  }
-
-  async function confirmDelete() {
-    if (deleteTargetId == null) return;
-    setIsDeleting(true);
-    try {
-      await migraineEpisodesDestroy(deleteTargetId);
-      toast.success("Episode deleted.");
-      setDeleteTargetId(null);
-      onDeleted?.();
-    } catch {
-      toast.error("Failed to delete episode.");
-    } finally {
-      setIsDeleting(false);
-    }
   }
 
   const totalPages = data ? Math.ceil(data.count / PAGE_SIZE) : 1;
@@ -151,7 +115,6 @@ export function EpisodeTable({ refreshKey = 0, onEdit, onDeleted }: EpisodeTable
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground w-16">
                   Aura
                 </th>
-                <th className="w-10" />
               </tr>
             </thead>
             <tbody>
@@ -163,14 +126,13 @@ export function EpisodeTable({ refreshKey = 0, onEdit, onDeleted }: EpisodeTable
                         <Skeleton className="h-4 w-full" />
                       </td>
                     ))}
-                    <td className="px-2 py-3" />
                   </tr>
                 ))}
 
               {!loading && data?.results.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-4 py-12 text-center text-muted-foreground"
                   >
                     No migraine episodes recorded yet.
@@ -229,37 +191,6 @@ export function EpisodeTable({ refreshKey = 0, onEdit, onDeleted }: EpisodeTable
                         <span className="text-muted-foreground">No</span>
                       )}
                     </td>
-                    <td
-                      className="px-2 py-3"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className=""
-                          >
-                            <MoreVerticalIcon className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => onEdit?.(episode.id)}
-                          >
-                            <PencilIcon className="size-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => setDeleteTargetId(episode.id)}
-                          >
-                            <Trash2Icon className="size-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
                   </tr>
                 ))}
             </tbody>
@@ -298,31 +229,9 @@ export function EpisodeTable({ refreshKey = 0, onEdit, onDeleted }: EpisodeTable
         episodeId={selectedId}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onEdit={() => onEdit?.(selectedId!)}
+        onDeleted={() => onDeleted?.()}
       />
-
-      <AlertDialog
-        open={deleteTargetId != null}
-        onOpenChange={(open) => { if (!open) setDeleteTargetId(null); }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete episode?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this migraine episode. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Deleting…" : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
