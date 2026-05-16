@@ -91,8 +91,10 @@ const VISUAL_AURA_LOCATION_OPTIONS = [
   { value: "upper_field", label: "Upper field" },
 ];
 
-const episodeSchema = z.object({
+const episodeSchema = z
+  .object({
   started_at: z.string().min(1, "Start time is required"),
+  still_ongoing: z.boolean(),
   ended_at: z.string().optional(),
   migraine_type: z.string().optional(),
   pain_level: z.number().int().min(0).max(5),
@@ -115,6 +117,15 @@ const episodeSchema = z.object({
   trigger_ids: z.array(z.number()),
   symptom_ids: z.array(z.number()),
   medication_ids: z.array(z.number()),
+})
+.superRefine((data, ctx) => {
+  if (!data.still_ongoing && (!data.ended_at || data.ended_at.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "End time is required",
+      path: ["ended_at"],
+    });
+  }
 });
 
 type EpisodeFormValues = z.infer<typeof episodeSchema>;
@@ -159,6 +170,7 @@ export function EpisodeFormDialog({
     resolver: zodResolver(episodeSchema) as any,
     defaultValues: {
       started_at: "",
+      still_ongoing: false,
       pain_level: 0,
       has_aura: false,
       aura_types: [],
@@ -185,6 +197,7 @@ export function EpisodeFormDialog({
       .then((ep) => {
         form.reset({
           started_at: toDatetimeLocal(ep.started_at),
+          still_ongoing: !ep.ended_at,
           ended_at: ep.ended_at ? toDatetimeLocal(ep.ended_at) : "",
           migraine_type: ep.migraine_type ?? "",
           pain_level: ep.pain_level ?? 0,
@@ -290,20 +303,42 @@ export function EpisodeFormDialog({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="ended_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ended</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!form.watch("still_ongoing") && (
+                  <FormField
+                    control={form.control}
+                    name="ended_at"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ended *</FormLabel>
+                        <FormControl>
+                          <Input type="datetime-local" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
+              <FormField
+                control={form.control}
+                name="still_ongoing"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          if (checked) form.setValue("ended_at", "");
+                        }}
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0 cursor-pointer">
+                      Still ongoing
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
 
               <Separator />
               <SectionTitle>Pain &amp; Severity</SectionTitle>
