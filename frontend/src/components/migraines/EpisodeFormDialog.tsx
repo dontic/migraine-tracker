@@ -21,12 +21,7 @@ import {
   migraineTriggersUpdate,
   migraineTriggersDestroy,
 } from "@/api/django/migraine-triggers/migraine-triggers";
-import {
-  migraineMedicationsList,
-  migraineMedicationsCreate,
-  migraineMedicationsUpdate,
-  migraineMedicationsDestroy,
-} from "@/api/django/migraine-medications/migraine-medications";
+import { migraineMedicationsList } from "@/api/django/migraine-medications/migraine-medications";
 import type {
   Symptom,
   Trigger,
@@ -61,6 +56,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { ManagedMultiSelect } from "./ManagedMultiSelect";
+import { EpisodeMedicationsField } from "./EpisodeMedicationsField";
 import {
   MultiSelect,
   MultiSelectContent,
@@ -132,7 +128,13 @@ const episodeSchema = z
   notes: z.string().optional(),
   trigger_ids: z.array(z.number()),
   symptom_ids: z.array(z.number()),
-  medication_ids: z.array(z.number()),
+  episode_medications: z.array(
+    z.object({
+      medication: z.number(),
+      taken_offset_minutes: z.number().int().nullable(),
+      effectiveness: z.number().int().nullable(),
+    })
+  ),
 })
 .superRefine((data, ctx) => {
   if (!data.still_ongoing && (!data.ended_at || data.ended_at.trim() === "")) {
@@ -194,7 +196,7 @@ export function EpisodeFormDialog({
       visual_aura_locations: [],
       trigger_ids: [],
       symptom_ids: [],
-      medication_ids: [],
+      episode_medications: [],
     },
   });
 
@@ -221,7 +223,7 @@ export function EpisodeFormDialog({
         visual_aura_locations: [],
         trigger_ids: [],
         symptom_ids: [],
-        medication_ids: [],
+        episode_medications: [],
       });
       return;
     }
@@ -246,7 +248,11 @@ export function EpisodeFormDialog({
           notes: ep.notes ?? "",
           trigger_ids: ep.triggers.map((t) => t.id),
           symptom_ids: ep.symptoms.map((s) => s.id),
-          medication_ids: ep.episode_medications.map((em) => em.medication.id),
+          episode_medications: ep.episode_medications.map((em) => ({
+            medication: em.medication.id,
+            taken_offset_minutes: em.taken_offset_minutes ?? null,
+            effectiveness: em.effectiveness ?? null,
+          })),
         });
       })
       .catch(() => toast.error("Failed to load episode data."));
@@ -285,8 +291,10 @@ export function EpisodeFormDialog({
       notes: values.notes,
       triggers: values.trigger_ids,
       symptoms: values.symptom_ids,
-      episode_medications: values.medication_ids.map((id) => ({
-        medication: id,
+      episode_medications: values.episode_medications.map((em) => ({
+        medication: em.medication,
+        taken_offset_minutes: em.taken_offset_minutes,
+        effectiveness: em.effectiveness as never,
       })),
     };
     try {
@@ -761,27 +769,15 @@ export function EpisodeFormDialog({
               <SectionTitle>Medications</SectionTitle>
               <FormField
                 control={form.control}
-                name="medication_ids"
+                name="episode_medications"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <ManagedMultiSelect
-                        label="Medications"
-                        selectedIds={field.value}
+                      <EpisodeMedicationsField
+                        value={field.value}
                         onChange={field.onChange}
-                        items={medications}
-                        onCreateItem={async (name) => {
-                          await migraineMedicationsCreate({ name });
-                          await refreshMedications();
-                        }}
-                        onUpdateItem={async (id, name) => {
-                          await migraineMedicationsUpdate(id, { name });
-                          await refreshMedications();
-                        }}
-                        onDeleteItem={async (id) => {
-                          await migraineMedicationsDestroy(id);
-                          await refreshMedications();
-                        }}
+                        medications={medications}
+                        onMedicationsChange={refreshMedications}
                       />
                     </FormControl>
                     <FormMessage />
