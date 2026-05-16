@@ -206,8 +206,23 @@ export function EpisodeFormDialog({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !isEditMode) {
-      if (!open) form.reset();
+    if (!open) {
+      form.reset();
+      return;
+    }
+    if (!isEditMode) {
+      form.reset({
+        started_at: toDatetimeLocal(new Date().toISOString()),
+        still_ongoing: false,
+        pain_level: 0,
+        headache_regions: [],
+        has_aura: false,
+        aura_types: [],
+        visual_aura_locations: [],
+        trigger_ids: [],
+        symptom_ids: [],
+        medication_ids: [],
+      });
       return;
     }
     migraineEpisodesRetrieve(episodeId!)
