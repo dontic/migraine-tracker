@@ -185,7 +185,7 @@ export function EpisodeFormDialog({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(episodeSchema) as any,
     defaultValues: {
-      started_at: "",
+      started_at: toDatetimeLocal(new Date().toISOString()),
       still_ongoing: false,
       pain_level: 0,
       headache_regions: [],
