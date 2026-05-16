@@ -14,6 +14,11 @@ class Migration(migrations.Migration):
             name='migraineepisodemedication',
             unique_together=set(),
         ),
+        # PostgreSQL cannot cast boolean → smallint directly; cast via int first.
+        migrations.RunSQL(
+            sql='ALTER TABLE migraine_migraineepisodemedication ALTER COLUMN effectiveness TYPE smallint USING effectiveness::int::smallint',
+            reverse_sql='ALTER TABLE migraine_migraineepisodemedication ALTER COLUMN effectiveness TYPE boolean USING effectiveness::boolean',
+        ),
         migrations.AlterField(
             model_name='migraineepisodemedication',
             name='effectiveness',
