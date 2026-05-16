@@ -48,10 +48,11 @@ class SymptomSerializer(serializers.ModelSerializer):
 
 class MigraineEpisodeMedicationReadSerializer(serializers.ModelSerializer):
     medication = MedicationSerializer(read_only=True)
+    effectiveness_display = serializers.CharField(source="get_effectiveness_display", read_only=True)
 
     class Meta:
         model = MigraineEpisodeMedication
-        fields = ["id", "medication", "taken_offset_minutes", "dose", "effectiveness"]
+        fields = ["id", "medication", "taken_offset_minutes", "dose", "effectiveness", "effectiveness_display"]
 
 
 class MigraineEpisodeMedicationWriteSerializer(serializers.ModelSerializer):

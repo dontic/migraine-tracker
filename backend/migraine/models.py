@@ -256,11 +256,18 @@ class MigraineEpisodeMedication(models.Model):
         help_text="Minutes from episode start when taken (negative = taken before onset)",
     )
     dose = models.CharField(max_length=50, blank=True, default="")
-    effectiveness = models.BooleanField(null=True, blank=True)
+
+    class Effectiveness(models.IntegerChoices):
+        NO_RELIEF = 0, "No relief"
+        PARTIAL = 1, "Partial relief"
+        FULL = 2, "Full relief"
+
+    effectiveness = models.SmallIntegerField(
+        choices=Effectiveness.choices, null=True, blank=True
+    )
 
     class Meta:
         ordering = ["taken_offset_minutes"]
-        unique_together = [["episode", "medication"]]
         verbose_name = "episode medication"
         verbose_name_plural = "episode medications"
 
